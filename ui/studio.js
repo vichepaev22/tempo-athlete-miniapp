@@ -149,6 +149,6 @@
     document.querySelectorAll('.ai-note').forEach(p=>p.textContent='Фоторазбор ожидает подключения ИИ. Фотографии здесь не собираются.');
     Array.from($('style').options).forEach(option=>option.disabled=option.value!=='original');$('random-scene').disabled=true;$('random-scene').title='После подключения ИИ';
     $('recipe-label').textContent='Оригинальное фото. Художественные стили появятся после подключения ИИ.';
-    document.querySelector('footer p').textContent='Предпросмотр. Garmin, Strava и Apple Watch ещё не подключены.';
+    document.querySelector('footer p').textContent='Предпросмотр. Ручной импорт Garmin доступен в личном Telegram-пилоте. Аккаунты ещё не синхронизируются.';
   }else (async()=>{try{await request('/api/health',undefined,'GET');try{const s=await request('/api/session',undefined,'GET');setSession(true,s.external_ai);}catch(_){setSession(false,false);}}catch(_){$('connection').textContent='Сервис недоступен';setSession(false,false);$('connection').textContent='Сервис недоступен';}})();
 })();
