@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#171b1e">
+  <title>ТЕМП — приветствие, 15 секунд</title>
+  <link rel="stylesheet" href="ui/welcome-motion.css?v=0fadc5ecd046">
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:#171b1e;color:#f6f7f8;font:16px/1.6 Arial,sans-serif;display:grid;place-items:center;padding:24px}main{max-width:670px}h1{font:800 clamp(42px,9vw,84px)/1 Bahnschrift,Arial,sans-serif;letter-spacing:-.04em;margin:0 0 26px}p{color:#a6adb4}button,a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;border:1px solid #ffffff30;border-radius:9px;background:#ff682d;color:#171b1e;text-decoration:none;padding:13px 20px;font:700 14px Arial,sans-serif;cursor:pointer}a{background:transparent;color:#f6f7f8}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #ff682d;outline-offset:5px}.buttons{display:flex;gap:12px;flex-wrap:wrap}label{display:flex;gap:10px;align-items:center;margin:24px 0}input{accent-color:#ff682d}.tag{color:#ff682d;text-transform:uppercase;font:600 12px Arial,sans-serif;letter-spacing:.15em}.timeline{list-style:none;margin:26px 0;padding:0;color:#a6adb4;font-size:13px}.timeline li{padding:7px 0;border-bottom:1px solid #ffffff12}.timeline time{display:inline-block;min-width:90px;color:#f6f7f8;font-variant-numeric:tabular-nums}.notice{font-size:12px;color:#8b949e}
+  </style>
+  <script src="ui/welcome-motion.js?v=295e2a676d53" defer></script>
+</head>
+<body>
+  <main>
+    <p class="tag">Motion preview / 15 сек</p>
+    <h1 id="preview-heading" tabindex="-1">Ваш темп.<br>Ваш прогресс.</h1>
+    <p id="preview-status" role="status">Бегун → геометрия → пловец → ТЕМП. Приветствие можно пропустить, поставить на паузу или посмотреть ещё раз.</p>
+    <div class="buttons"><button id="open-welcome" type="button">Посмотреть приветствие</button><a href="product-concept.html">Открыть кабинет</a></div>
+    <label><input id="reduced-mode" type="checkbox">Без движения — сразу финальный кадр</label>
+    <ol class="timeline">
+      <li><time>0–2.2 сек</time>Динамичная типографика «Анализ тренировок»</li>
+      <li><time>2.2–4 сек</time>Бегун выходит из-за букв</li>
+      <li><time>4–6.5 сек</time>Бегун выше; источник → анализ → рекомендации</li>
+      <li><time>6.5–8.2 сек</time>Линии собираются в геометрическую фигуру</li>
+      <li><time>8.2–10 сек</time>Из фигуры появляется пловец кролем</li>
+      <li><time>10–12.7 сек</time>Пловец выше; дистанция → прогресс → общая история</li>
+      <li><time>12.7–15 сек</time>Финальный кадр и «Начать»</li>
+    </ol>
+    <p class="notice">Локальное приветствие интерфейса. Подключение аккаунтов и консультационная модель этим экраном не запускаются. Ползунок «Кадр» присутствует только в этом просмотре.</p>
+  </main>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const reduce = document.querySelector('#reduced-mode');
+      const status = document.querySelector('#preview-status');
+      const heading = document.querySelector('#preview-heading');
+      const openButton = document.querySelector('#open-welcome');
+      reduce.checked = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function showWelcome() {
+        window.previewWelcome = window.TempoWelcome.open({
+          previewControls: true,
+          reducedMotion: reduce.checked,
+          onStart() { status.textContent = 'Приветствие завершено. Кабинет доступен по кнопке «Открыть кабинет».'; heading.focus(); }
+        });
+      }
+      openButton.addEventListener('click', showWelcome);
+      showWelcome();
+    });
+  </script>
+</body>
+</html>

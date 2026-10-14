@@ -29,5 +29,6 @@
   "ui/tips.js": "1e6a098f01fdd9df37ff76aca0228a3430303155193fd7d66429a8e39cce4904",
   "ui/views.js": "4ba0a34131cd5377c5852faa049dc07d66a8a88e3b968a60b39ab53161c6f8bf",
   "ui/welcome-motion.css": "0fadc5ecd04697f538fe34abe57515bd2e33fe0ed8758c36bde82196025ed151",
-  "ui/welcome-motion.js": "295e2a676d534a7610f03f0fa65ff89d09c6bfd63002ee97476f50a20668b1ff"
+  "ui/welcome-motion.js": "295e2a676d534a7610f03f0fa65ff89d09c6bfd63002ee97476f50a20668b1ff",
+  "welcome-preview.html": "bc4047882d05cb873dd7601885e76d4bc1f32da455c3ff500e3aa00363efb1d6"
 }
