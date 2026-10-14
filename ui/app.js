@@ -29,13 +29,13 @@
     TempoIcons.hydrate(target);el('detail-dialog').showModal();TempoMotion.enter(el('detail-dialog'));el('dialog-close').focus();
   }
   function activity(a){
-    const box=document.createElement('section'),note=document.createElement('p');note.className='muted';note.textContent=a.date+' · '+(a.sport==='run'?'Бег':'Плавание');box.append(note);
+    const box=document.createElement('section'),note=document.createElement('p');note.className='muted';note.textContent=a.date+' · '+TempoViews.sportName(a.sport);box.append(note);
     const grid=document.createElement('div');grid.className='dialog-grid';grid.innerHTML='<div><strong>'+TempoViews.km(a.km)+' км</strong><small>Дистанция</small></div><div><strong>'+a.min+' мин</strong><small>Длительность</small></div>';box.append(grid);
-    const p=document.createElement('p');p.textContent='Источник: демонстрационная история. Пульс отсутствует; зоны и интенсивность по нему не рассчитываются. На телефоне доступны те же подробности.';box.append(p);dialog(a.name,box,'Ваша тренировка');
+    const p=document.createElement('p');p.textContent=TempoData.live?('Источник: Garmin, личное неофициальное подключение. '+(a.heart_rate==null?'Средний пульс отсутствует.':'Средний пульс: '+a.heart_rate+' уд/мин. ')+(a.duration_kind==='elapsed'?'Длительность включает паузы.':'Длительность по таймеру.')):'Источник: демонстрационная история. Пульс отсутствует; зоны и интенсивность по нему не рассчитываются. На телефоне доступны те же подробности.';box.append(p);dialog(a.name,box,'Ваша тренировка');
   }
   function profile(){
     const box=document.createElement('div');
-    const p=document.createElement('p');p.textContent='Локальный кабинет. Реальный вход через Telegram и синхронизация аккаунтов пока не подключены.';box.append(p);
+    const p=document.createElement('p');p.textContent=TempoData.live?'Личный кабинет Telegram. Статус Garmin и обновление — в разделе «Источники». Данные обрабатываются на вашем VPS.':'Демонстрационный кабинет. Для личных данных откройте приложение через кнопку бота Telegram.';box.append(p);
     const row=document.createElement('label');row.className='setting-row';row.innerHTML='<input type="checkbox" id="motion-toggle"><span>Уменьшить движение<small>Спортсмены и декоративные эффекты останутся статичными.</small></span>';
     const input=row.querySelector('input');input.checked=TempoMotion.reduced();input.disabled=matchMedia('(prefers-reduced-motion:reduce)').matches;
     input.addEventListener('change',()=>{TempoMotion.setReduced(input.checked);toast(input.checked?'Движение уменьшено.':'Анимация включена.');});box.append(row);
@@ -78,6 +78,7 @@
   document.addEventListener('tempo-motion-change',()=>{if(TempoMotion.reduced()&&welcome)welcome.close();});
   addEventListener('pagehide',()=>{clearTimeout(retryTimer);welcome?.close();});
   const hash=location.hash.slice(1);showScreen(TempoData.screens[hash]?hash:'overview');
+  window.TempoApp={refresh(){TempoViews.render(state,activity);TempoMotion.update();TempoTips.refresh();},toast,state};
   let seen=false;try{seen=sessionStorage.getItem('tempo-welcome-seen')==='true';}catch{}
   if(!seen)openWelcome();
 })();

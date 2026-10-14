@@ -28,3 +28,5 @@
 @media(max-width:760px){.knowledge-heading{display:block}.knowledge-heading>.button{margin-top:16px}.knowledge-level{display:block}.knowledge-level select{display:block;margin-top:8px}.tip-source{display:block}.tip-source a{display:inline-block;margin-top:12px}#tip-card{padding:20px}}
 
 #page-title:focus{outline:none}
+/* Owner Garmin connection uses the existing product typography and controls. */
+.garmin-connection{padding:28px;margin-bottom:24px;border:1px solid #dfe3e5;border-left:4px solid #ff682d;background:#fff;border-radius:12px}.garmin-connection h2{margin:0 0 12px}.garmin-connection p{max-width:70ch}.garmin-connection .button{margin:8px 0}.garmin-connection .footnote{margin-bottom:0}svg[hidden]{display:none!important}
