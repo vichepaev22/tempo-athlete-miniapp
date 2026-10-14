@@ -24,7 +24,7 @@
     select.replaceChildren();[['current',date(monday-5*3600000)+' — '+date(monday+6*86400000-5*3600000)],['previous',date(monday-7*86400000-5*3600000)+' — '+date(monday-86400000-5*3600000)],['all','Вся история']].forEach(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);});
     if(!TempoData.weeks[app.state.week])app.state.week='current';select.value=app.state.week;
     TempoData.weekLabels={current:[new Date(monday).getUTCDate()+'—'+new Date(monday+6*86400000).getUTCDate(),'ТЕКУЩАЯ НЕДЕЛЯ / UTC+5'],previous:[new Date(monday-7*86400000).getUTCDate()+'—'+new Date(monday-86400000).getUTCDate(),'ПРОШЛАЯ НЕДЕЛЯ / UTC+5'],all:['ВСЯ','ИСТОРИЯ GARMIN']};
-    document.querySelector('.demo-pill').textContent=connection.status==='ready'?'● Garmin · '+mapped.length+' занятий':'○ Garmin · '+(labels[connection.status]||'Проверка подключения');
+    document.querySelector('.demo-pill').textContent=connection.status==='ready'?'● Garmin · '+TempoViews.sessions(mapped.length):'○ Garmin · '+(labels[connection.status]||'Проверка подключения');
     document.querySelector('.legend-note').textContent='Garmin / личный пилот · прочие виды серым';
     document.querySelector('.app-footer>span').textContent='ТЕМП / ВАШ GARMIN';document.querySelector('.app-footer>p').textContent='Данные Garmin через MCP. Персональный анализ ИИ ещё не подключён.';
     document.querySelector('.report-badge').textContent='Сводка Garmin · без ИИ';
