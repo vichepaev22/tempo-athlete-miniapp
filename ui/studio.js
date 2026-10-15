@@ -29,7 +29,7 @@
   function setSession(value, provider) {
     signedIn = value; ai = provider; $('login-panel').hidden = value; $('logout').hidden = !value;
     $('connection').textContent = value ? 'Личный пилот' : 'Вход по коду'; $('connection').classList.toggle('online', value);
-    $('rag-ai').disabled = !ai; if (!ai) $('rag-ai').checked = false;
+    
     document.querySelectorAll('.ai-note').forEach(p => p.textContent = ai ? 'ИИ подключён. Отправка только с вашим согласием.' : 'ИИ ещё не подключён. Схемы съёмки и общие карточки доступны после входа.');
   }
   async function action(form, task, success) {
@@ -52,18 +52,6 @@
     await request('/api/session',{code:$('code').value}); $('code').value=''; const s=await request('/api/session',undefined,'GET'); setSession(true,s.external_ai);
   }, 'Вы вошли в личный пилот.');});
   $('logout').addEventListener('click', async () => {try {await request('/api/session',undefined,'DELETE');clearPhotos();clearStory();clearResult($('rag-result'),'Ваш результат');setSession(false,false);notify('Сессия завершена. Фотографии удалены из вкладки.');}catch(e){notify(e.message,true);}});
-  $('rag-form').addEventListener('submit', e => {e.preventDefault(); action(e.currentTarget, async () => {
-    requireSession(); const activities=[];
-    if ($('duration').value) activities.push({sport:$('sport').value,source:'manual',duration_seconds:Number($('duration').value)*60,distance_m:$('distance').value?Number($('distance').value)*1000:null,heart_rate:$('heart-rate').value?Number($('heart-rate').value):null});
-    if (!$('duration').value && ($('distance').value || $('heart-rate').value)) throw new Error('Добавьте длительность тренировки, чтобы использовать её показатели.');
-    const r=await request('/api/rag/consult',{question:$('question').value,discipline:$('sport').value,level:$('level').value,activities,external_ai:$('rag-ai').checked,provider_consent:$('rag-ai').checked,request_id:crypto.randomUUID()});
-    const target=$('rag-result'); clearResult(target, r.mode==='generative'?'Объяснение с ИИ':'Найдено в книгах'); target.append(node('p',r.answer,'result-text'));
-    if (activities.length) {const o=r.observations;target.append(node('p','Ваши показатели: '+o.sessions+' сессия · '+Math.round(o.duration_seconds/60)+' мин. Дистанция '+(o.distances_m[$('sport').value]===undefined?'не указана':(o.distances_m[$('sport').value]/1000).toLocaleString('ru-RU')+' км')+'.','result-facts'));}
-    const missing = r.missing.includes('heart_rate') ? 'Пульс отсутствует: интенсивность и зоны по нему не рассчитываются.' : 'Средний пульс сам по себе не задаёт индивидуальные зоны.';
-    target.append(node('p',missing,'fine'));
-    r.sources.forEach(s => {const item=node('section','','source-item');item.append(node('span',s.id+' · PDF-с. '+s.pdf_page+' · глава '+s.chapter,'source-label'),node('strong',s.title),node('p',s.text));target.append(item);});
-    r.limitations.forEach(text=>target.append(node('p',text,'fine')));
-  },'Книжные основания найдены.');});
   const views=[['front','Спереди'],['side','Сбоку'],['back','Сзади']];
   views.forEach(([view,label]) => {
     const slot=node('div','','photo-slot'), input=document.createElement('input'), labelNode=node('label',label);
@@ -71,7 +59,7 @@
     const preview=document.createElement('img');preview.alt='Выбранный снимок: '+label;preview.hidden=true;
     const mirrored=node('label','','check'), checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.id='mirror-'+view;mirrored.append(checkbox,node('span','Снимок в зеркале / зеркальное отражение'));
     slot.append(labelNode,input,preview,mirrored);$('photo-inputs').append(slot);
-    input.addEventListener('change',()=>{try {postureVersion++;const file=validFile(input);const old=previewURLs.get(view);if(old)URL.revokeObjectURL(old);preview.hidden=!file;if(file){const url=URL.createObjectURL(file);previewURLs.set(view,url);preview.src=url;}else{preview.removeAttribute('src');previewURLs.delete(view);}clearResult($('posture-result'),'Ваш фоторазбор');}catch(error){input.value='';notify(error.message,true);}});
+    input.addEventListener('change',()=>{try {postureVersion++;const file=validFile(input);const old=previewURLs.get(view);if(old)URL.revokeObjectURL(old);preview.hidden=!file;if(file){const url=URL.createObjectURL(file);previewURLs.set(view,url);preview.src=url;}else{preview.removeAttribute('src');previewURLs.delete(view);}clearResult($('posture-result'),'Ваша диагностика осанки');}catch(error){input.value='';notify(error.message,true);}});
   });
   function validFile(input) {
     const file=input.files[0];if(!file)return null;
@@ -143,10 +131,10 @@
   window.addEventListener('pagehide',()=>{previewURLs.forEach(url=>URL.revokeObjectURL(url));if(finalURL)URL.revokeObjectURL(finalURL);});
   if(preview){
     $('connection').textContent='Предпросмотр';$('login-panel').hidden=true;
-    const banner=node('section','','login-panel');banner.append(node('p','Публичный предпросмотр. Книжный поиск и фоторазбор ожидают подключения API. Схемы доступны, оригинальные сторис собираются на вашем устройстве.'));$('login-panel').after(banner);
-    for(const id of ['login-form','rag-form','posture-form']){$(id).querySelectorAll('input,textarea,select,button[type=submit]').forEach(control=>control.disabled=true);}
-    $('rag-form').querySelector('.fine').textContent='Поиск по двум книгам работает в приватном пилоте. На публичной странице он ещё не подключён.';
-    document.querySelectorAll('.ai-note').forEach(p=>p.textContent='Фоторазбор ожидает подключения ИИ. Фотографии здесь не собираются.');
+    const banner=node('section','','login-panel');banner.append(node('p','Публичный предпросмотр. Книжный поиск доступен в личном кабинете. Диагностика осанки ожидает подключения ИИ. Схемы доступны, оригинальные сторис собираются на вашем устройстве.'));$('login-panel').after(banner);
+    for(const id of ['login-form','posture-form']){$(id).querySelectorAll('input,textarea,select,button[type=submit]').forEach(control=>control.disabled=true);}
+    $('rag-form').querySelector('.fine').textContent='Поиск по обеим книгам работает в личном кабинете. Введите вопрос и нажмите кнопку; источник и PDF-страницы появятся рядом.';
+    document.querySelectorAll('.ai-note').forEach(p=>p.textContent='Диагностика осанки ожидает подключения ИИ. Фотографии здесь не собираются.');
     Array.from($('style').options).forEach(option=>option.disabled=option.value!=='original');$('random-scene').disabled=true;$('random-scene').title='После подключения ИИ';
     $('recipe-label').textContent='Оригинальное фото. Художественные стили появятся после подключения ИИ.';
     document.querySelector('footer p').textContent='Предпросмотр. Ручной импорт Garmin доступен в личном Telegram-пилоте. Аккаунты ещё не синхронизируются.';

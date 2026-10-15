@@ -8,6 +8,7 @@ window.TempoCsvView=(()=>{
   let sourceRows=[];
   function apply(payload){
     const {activities,connection}=payload;
+    const archive=connection.source==='garmin_archive',sourceLabel=archive?'Архив Garmin ZIP':'Экспорт Garmin CSV';
     const rows=activities.map(row=>{
       const stamp=dayStamp(row.start_time);
       return {...row,name:TempoViews.sportName(row.sport),date:dateLabel(stamp),when:stamp,stamp,
@@ -29,23 +30,23 @@ window.TempoCsvView=(()=>{
     select.replaceChildren(...options.map(([value,label])=>{const option=document.createElement('option');option.value=value;option.textContent=label;return option;}));
     const first=!TempoData.csvInitialized;TempoData.csvInitialized=true;
     window.TempoApp.state.week=first||!weeks[old]?'all':old;select.value=window.TempoApp.state.week;
-    document.querySelector('.demo-pill').textContent='● Экспорт Garmin · '+TempoViews.sessions(rows.length);
-    document.querySelector('.legend-note').textContent='Экспорт CSV · велосипед и походы серым';
+    document.querySelector('.demo-pill').textContent='● '+sourceLabel+' · '+TempoViews.sessions(rows.length);
+    document.querySelector('.legend-note').textContent=(archive?'Архив ZIP':'Экспорт CSV')+' · велосипед и походы серым';
     document.querySelector('.report-badge').textContent='Ваши данные · разбор экспорта';
     document.querySelector('.app-footer>span').textContent='ТЕМП / ЛИЧНЫЙ ЭКСПОРТ GARMIN';
-    document.querySelector('.app-footer>p').textContent='Реальные записи из CSV. Автосинхронизация Garmin не подключена. Платный ИИ не используется.';
+    document.querySelector('.app-footer>p').textContent='Ваша история из '+(archive?'полного архива ZIP':'экспорта CSV')+'. Автосинхронизация Garmin не подключена.';
     document.querySelector('.avatar').textContent='М';
-    TempoData.screens.overview=['ВАШИ ТРЕНИРОВКИ / 01','Ваша история.<br>В движении',TempoViews.sessions(rows.length)+': '+dateLabel(rows[0].stamp)+' — '+dateLabel(rows.at(-1).stamp)+' '+rows.at(-1).month.slice(0,4)+'. Реальные данные из экспорта Garmin.'];
+    TempoData.screens.overview=['ВАШИ ТРЕНИРОВКИ / 01','Ваша история.<br>В движении',TempoViews.sessions(rows.length)+': '+dateLabel(rows[0].stamp)+' — '+dateLabel(rows.at(-1).stamp)+' '+rows.at(-1).month.slice(0,4)+'. Источник: '+sourceLabel+'.'];
     if(window.TempoApp.state.screen==='overview'){el('page-eyebrow').textContent=TempoData.screens.overview[0];el('page-title').innerHTML=TempoData.screens.overview[1]+'<span class="accent">.</span>';el('page-subtitle').textContent=TempoData.screens.overview[2];}
-    el('consult-open').textContent='Разобрать период';
+    el('consult-open').textContent='Полный отчёт';
     document.querySelectorAll('.review-controls,.device-controls').forEach(n=>n.hidden=true);
-    TempoData.sources.garmin=['Экспорт Garmin CSV',TempoViews.sessions(rows.length)+' с '+dateLabel(rows[0].stamp)+' по '+dateLabel(rows.at(-1).stamp)+'. Бег, плавание, велосипед и походы. Источник — сохранённый CSV; автоматический вход Garmin пока не работает. Даты сохранены как в экспорте: часовой пояс в нём не указан.'];
+    TempoData.sources.garmin=[sourceLabel,TempoViews.sessions(rows.length)+' с '+dateLabel(rows[0].stamp)+' по '+dateLabel(rows.at(-1).stamp)+'. Бег, плавание, велосипед и походы. '+(archive?'История из полного архива ZIP обновила CSV без дубликатов. Смещение к UTC подтверждено полями архива; оно указано в карточке.':'Даты сохранены как в CSV: часовой пояс не указан.')+' Автоматический вход Garmin пока не работает.'];
     const sources=el('sources-screen'),garminRow=sources.querySelector('[data-source="garmin"]').closest('.source-row');
     sources.querySelector('.source-count').innerHTML='01<small>/03</small>';
-    sources.querySelector('.source-intro h2').textContent='Ваш экспорт Garmin загружен.';
+    sources.querySelector('.source-intro h2').textContent=archive?'Ваш архив Garmin загружен.':'Ваш экспорт Garmin загружен.';
     sources.querySelector('.source-intro p').textContent='История доступна в обзоре, журнале и разборе. Автосинхронизация аккаунта пока не подключена.';
-    garminRow.querySelector('p').textContent='Личный CSV: бег, плавание, велосипед и походы.';
-    garminRow.querySelector('.source-status').textContent='● Загружено: '+TempoViews.sessions(rows.length)+' · экспорт CSV';
+    garminRow.querySelector('p').textContent=(archive?'Полный архив ZIP':'Личный CSV')+': бег, плавание, велосипед и походы.';
+    garminRow.querySelector('.source-status').textContent='● Загружено: '+TempoViews.sessions(rows.length)+' · '+sourceLabel;
     garminRow.querySelector('button').textContent='О данных ↗';
     sources.querySelector(':scope > .footnote').textContent='Графики построены по вашему экспорту. Данные Strava и Apple Watch пока не загружены; автоматического обмена с аккаунтами нет.';
     el('pair-open').hidden=true;
@@ -53,7 +54,7 @@ window.TempoCsvView=(()=>{
       const section=document.createElement('section');section.className='report-section';section.id='csv-analysis';
       const index=document.createElement('span');index.className='report-index';index.textContent='ЭКСПОРТ / ФАКТЫ';
       const heading=document.createElement('h3');heading.textContent='Ваш объём в деталях';section.append(index,heading);
-      document.querySelector('.report-intro').after(section);
+      document.querySelector('#training-report').after(section);
     }
     window.TempoApp.refresh();
   }
@@ -89,7 +90,7 @@ window.TempoCsvView=(()=>{
       'Дней с тренировками: '+days.length+'. Самый длинный промежуток без записи, дней: '+gap+'. Отсутствие записи не доказывает отсутствие другой активности.',
       'Средний пульс есть у '+hr.length+' из '+items.length+' занятий.'+(median==null?'':' Медиана средних значений — '+fmt(median)+' уд/мин; это не средний пульс за весь период. Сравнивать интенсивность разных видов только по нему нельзя.'),
       'Полное время по записям: '+TempoViews.time(elapsed/60)+' ч:мин. Время таймера: '+TempoViews.time(active/60)+' ч:мин. Разница включает остановки; это не отдельная тренировочная нагрузка.',
-      'Плавание в исходном CSV задано в метрах и переведено в километры. Даты и время сохранены как в экспорте, без предположения о часовом поясе. Это описательная сводка; персональный план и ИИ-консультация ещё не подключены.'
+      (TempoData.connection?.source==='garmin_archive'?'ZIP Garmin уточнил время и дистанцию исходных 84 записей. Дистанция переведена из сантиметров, время — из миллисекунд. Смещение к UTC взято из локального времени и GMT архива.':'Плавание в CSV переведено из метров. Даты CSV не имеют указанного часового пояса.')+' Показатели служат основой расчётного отчёта выше.'
     ];
     facts.forEach(text=>{const p=document.createElement('p');p.textContent=text;section.append(p);});
   }

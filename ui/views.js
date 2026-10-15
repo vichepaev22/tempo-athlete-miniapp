@@ -36,7 +36,7 @@ window.TempoViews = (() => {
     let html=metric('Длительность',time(total),'ч:мин','В выбранном периоде')+metric('Тренировки',items.length,'',TempoData.live?'Ваш Garmin':'Ваша демо-история');
     html+=state.sport==='all'?metric('Бег',km(run),'км','Дистанция бега')+metric('Плавание',km(swim),'км','Дистанция плавания'):metric('Дистанция',km(distance(state.sport)),'км','Выбранная дисциплина')+metric('Средняя сессия',Math.round(total/Math.max(1,items.length)),'мин','По длительности');
     el('metric-grid').innerHTML=html;el('week-chart').hidden=state.week==='all'&&!TempoData.imported;if(!el('week-chart').hidden)chart(items,state);list(el('recent-list'),items.slice(-3),onActivity);list(el('journal-list'),items,onActivity);
-    if(TempoData.imported){const panel=el('week-chart').closest('.chart-panel');panel.querySelector('h2').textContent=state.week==='all'?'Ритм по месяцам':/^\d{4}-\d{2}$/.test(state.week)?'Ритм месяца':'Ритм недели';panel.querySelector('.unit-label').textContent=state.week==='all'?'МИНУТЫ / МЕСЯЦ':'МИНУТЫ / ПЕРИОД';}
+    if(TempoData.imported){const panel=el('week-chart').closest('.chart-panel');panel.querySelector('h2').textContent=state.week==='all'?'Время тренировок по месяцам':/^\d{4}-\d{2}$/.test(state.week)?'Время тренировок за месяц':'Время тренировок по дням';panel.querySelector('.unit-label').textContent=state.week==='all'?'МИНУТЫ / МЕСЯЦ':'МИНУТЫ / ПЕРИОД';}
     el('journal-count').textContent=items.length+' СЕССИЙ';
     const label=TempoData.weekLabels?.[state.week];el('stamp-days').textContent=label?label[0]:state.week==='current'?'05—11':'28—04';el('stamp-month').textContent=label?label[1]:state.week==='current'?'ОКТЯБРЬ 2026':'СЕНТЯБРЬ / ОКТЯБРЬ';
     const longest=items.length?Math.round(Math.max(...items.map(a=>a.min))*10)/10:0;
@@ -44,6 +44,7 @@ window.TempoViews = (() => {
     el('report-observation').textContent='В выбранной '+(TempoData.live?'истории Garmin ':'демо-истории ')+sessions(items.length)+' общей длительностью '+time(total)+' ч:мин. '+(state.sport==='all'?'Бег: '+km(run)+' км. Плавание: '+km(swim)+' км.':sportName(state.sport)+': '+km(distance(state.sport))+' км.');
     el('report-fact').textContent='Самая длинная сессия — '+longest.toLocaleString('ru-RU')+' минут. '+(TempoData.live?'Это сводка полученных данных; персональные зоны и рекомендации модели ещё не рассчитываются.':'Пульс в этой демо-истории отсутствует: зоны и интенсивность по нему не рассчитываем.');
     if(TempoData.imported)TempoCsvView.report(items,state);
+    if(window.TempoReport)TempoReport.render(items,state);
   }
   return {render,selected,km,time,sessions,sportName};
 })();
