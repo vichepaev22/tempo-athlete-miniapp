@@ -6,7 +6,7 @@ window.TempoTips = (() => {
     {id:'load',title:'Дистанция — ещё не вся нагрузка',text:'Величина тренировочного воздействия связана с объёмом, интенсивностью и новизной упражнений. Одинаковое время или дистанция сами по себе не описывают все три составляющие.',source:'Владимир Иссурин · PDF-с. 15 · фрагмент 24',book:'book-02',chunk:24,page:15,href:'about.html#books'}
   ];
   const labels={unknown:'Уровень не указан',beginner:'Для начинающего',recreational:'Для регулярных тренировок',experienced:'Для опытного спортсмена'};
-  const framing={unknown:'Это общее знание. Укажите свой опыт, чтобы выбрать более подходящий уровень объяснения.',beginner:'Начните с различия между объёмом, интенсивностью и целью занятия. По одной дистанции нельзя определить, насколько тяжёлой была сессия.',recreational:'Сравнивайте одинаковые дисциплины и периоды, сохраняя цель и контекст каждой сессии.',experienced:'Разделяйте наблюдаемый объём и предполагаемый тренировочный эффект. Для вывода об интенсивности и адаптации этой демо-истории недостаточно.'};
+  const framing={unknown:'Это общее знание. Укажите свой опыт, чтобы выбрать более подходящий уровень объяснения.',beginner:'Начните с различия между объёмом, интенсивностью и целью занятия. По одной дистанции нельзя определить, насколько тяжёлой была сессия.',recreational:'Сравнивайте одинаковые дисциплины и периоды, сохраняя цель и контекст каждой сессии.',experienced:'Разделяйте наблюдаемый объём и предполагаемый тренировочный эффект. Для вывода об интенсивности и адаптации одной сводки дистанции и длительности недостаточно.'};
   let last=null,getState,notify;
   const el=id=>document.getElementById(id);
   function show(next=true){
@@ -18,7 +18,7 @@ window.TempoTips = (() => {
     const discipline=state.sport==='swim'?'Плавание':state.sport==='run'?'Бег':'Бег и плавание';
     el('tip-card').hidden=false;el('tip-card').dataset.card=card.id;el('tip-hint').hidden=true;
     el('tip-label').textContent=discipline+' / '+labels[level];el('tip-title').textContent=card.title;el('tip-text').textContent=card.text;
-    el('tip-context').textContent='Контекст демо-недели: '+TempoViews.sessions(items.length)+', '+minutes+' мин. Пульс и индивидуальная реакция не известны.';
+    el('tip-context').textContent=(TempoData.live?'Контекст выбранного периода Garmin: ':'Контекст демо-недели: ')+TempoViews.sessions(items.length)+', '+minutes+' мин. Индивидуальная реакция и персональные зоны не определены.';
     el('tip-application').textContent=framing[level];el('tip-source').textContent=card.source;el('tip-link').href=card.href;
     TempoMotion.enter(el('tip-card'));if(next)notify('Показано знание из книги: '+discipline.toLowerCase()+'.');
   }
