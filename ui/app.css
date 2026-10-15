@@ -33,3 +33,4 @@
 
 /* Personal export: compact filters and readable report table. */
 .sport-tabs{gap:18px;min-width:0;overflow-x:auto;scrollbar-width:thin}.sport-tabs button{flex-shrink:0;white-space:nowrap}.sport-selector{min-width:0}.csv-summary{width:100%;border-collapse:collapse;margin:20px 0;font-size:13px}.csv-summary th,.csv-summary td{text-align:left;padding:10px 6px;border-bottom:1px solid #dfe3e5}.csv-summary th{font-size:10px;text-transform:uppercase;letter-spacing:.04em}.csv-summary td:first-child{font-weight:600}@media(max-width:680px){.sport-selector{display:grid;grid-template-columns:minmax(0,1fr) 48px;gap:12px}.sport-tabs{gap:18px}.csv-summary{font-size:11px}.csv-summary td,.csv-summary th{padding:10px 4px}}
+@media(max-width:680px){.sport-selector .athlete-tile{width:48px}.sport-selector .athlete-tile svg{width:44px}}
