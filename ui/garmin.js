@@ -52,6 +52,7 @@
     try{const result=await request('/api/garmin/status');describe(result);if(result.syncing){pollTimer=setTimeout(poll,4000);}else{sync.disabled=false;sync.textContent='Обновить Garmin';await load();}}catch{sync.disabled=false;status.textContent='Связь с сервером прервалась. Попробуйте обновить позже.';}
   }
   sync.addEventListener('click',async()=>{sync.disabled=true;sync.textContent='Обновляем…';try{await request('/api/garmin/sync','POST');await poll();}catch(error){sync.disabled=false;sync.textContent='Обновить Garmin';status.textContent=error.status===429?'Подождите минуту перед повторным обновлением.':error.status===401?'Откройте кабинет заново через кнопку бота Telegram.':'Не удалось начать обновление. История сохранена.';}});
-  if(initData){telegram.ready();apply([],{status:'loading'});load();}else{status.textContent='Для личной истории откройте «Мой кабинет» в @tempo_athlete_bot. В обычном браузере показан демонстрационный кабинет.';}
+  window.TempoGarmin={ready:Promise.resolve()};
+  if(initData){telegram.ready();apply([],{status:'loading'});window.TempoGarmin.ready=load();}else{status.textContent='Для личной истории откройте «Мой кабинет» в @tempo_athlete_bot. В обычном браузере показан демонстрационный кабинет.';}
   addEventListener('pagehide',()=>{stopped=true;clearTimeout(pollTimer);});
 })();

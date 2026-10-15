@@ -20,6 +20,7 @@
     el('data-controls').hidden=name==='sources'||name==='library';el('consult-open').hidden=name==='consultation';
     el('screen-status').textContent=t[1].replace('<br>',' ');history.replaceState(null,'','#'+name);
     TempoMotion.enter(el(name+'-screen'));TempoMotion.underline();
+    document.dispatchEvent(new Event('tempo:screen-change'));
     if(focus){el('main').scrollIntoView({block:'start',behavior:'instant'});el('page-title').focus({preventScroll:true});}
   }
   function dialog(title,content,eyebrow='Подробнее'){
@@ -44,12 +45,14 @@
     const input=row.querySelector('input');input.checked=TempoMotion.reduced();input.disabled=matchMedia('(prefers-reduced-motion:reduce)').matches;
     input.addEventListener('change',()=>{TempoMotion.setReduced(input.checked);toast(input.checked?'Движение уменьшено.':'Анимация включена.');});box.append(row);
     const button=document.createElement('button');button.className='button primary';button.textContent='Повторить приветствие';button.addEventListener('click',()=>{el('detail-dialog').close();openWelcome();});box.append(button);
+    const guide=document.createElement('button');guide.className='button secondary';guide.textContent='Как пользоваться';guide.addEventListener('click',()=>{el('detail-dialog').close();window.TempoOnboarding?.start();});box.append(guide);
+    const importer=document.createElement('button');importer.className='button secondary';importer.textContent='Загрузить Garmin ZIP';importer.addEventListener('click',()=>{el('detail-dialog').close();window.TempoOnboarding?.openImport();});box.append(importer);
     const studio=document.createElement('a');studio.href='studio.html#posture';studio.className='button secondary';studio.textContent='Студия: осанка и сторис ↗';box.append(studio);
     const hint=document.createElement('p');hint.className='footnote';hint.textContent=input.disabled?'Уменьшение движения включено в настройках устройства.':'Настройка сохраняется в этом браузере.';box.append(hint);dialog('Ваш кабинет',box,'Профиль / движение');
   }
   function openWelcome(){
     if(!window.TempoWelcome){toast('Приветствие недоступно. Кабинет остаётся доступен.','error');return;}
-    welcome=TempoWelcome.open({reducedMotion:TempoMotion.reduced(),onStart:()=>{welcome=null;try{sessionStorage.setItem('tempo-welcome-seen','true');}catch{}el('page-title').focus({preventScroll:true});}});
+    welcome=TempoWelcome.open({reducedMotion:TempoMotion.reduced(),onStart:()=>{welcome=null;try{sessionStorage.setItem('tempo-welcome-seen','true');}catch{}el('page-title').focus({preventScroll:true});document.dispatchEvent(new Event('tempo:welcome-end'));}});
   }
   TempoIcons.hydrate();TempoMotion.init();TempoForms.init(toast);
   TempoViews.render(state,activity);TempoMotion.sport('all',false);TempoTips.init(()=>state,toast);
@@ -69,7 +72,7 @@
     state.history='loading';showScreen(state.screen);el('state-select').value='loading';
     retryTimer=setTimeout(()=>{state.history='ready';el('state-select').value='ready';showScreen(state.screen);toast('Демо-история восстановлена.');},600);
   });
-  document.querySelectorAll('[data-source]').forEach(b=>b.addEventListener('click',()=>{const s=TempoData.sources[b.dataset.source];dialog(s[0],s[1],'Источник тренировок');}));
+  document.querySelectorAll('[data-source]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.source==='garmin'&&window.TempoOnboarding){TempoOnboarding.openImport();return;}const s=TempoData.sources[b.dataset.source];dialog(s[0],s[1],'Источник тренировок');}));
   document.querySelectorAll('[data-book]').forEach(b=>b.addEventListener('click',()=>{
     const book=TempoData.books[b.dataset.book],box=document.createElement('div'),p=document.createElement('p');p.textContent=book.text;box.append(p);const button=document.createElement('button');button.className='button primary';button.textContent='Искать в книгах ↗';button.addEventListener('click',()=>{el('detail-dialog').close();showScreen('library',true);document.querySelector('#library-search [name="question"]').focus();});box.append(button);dialog(book.title,box,book.eyebrow);
   }));
@@ -83,7 +86,7 @@
   document.addEventListener('tempo-motion-change',()=>{if(TempoMotion.reduced()&&welcome)welcome.close();});
   addEventListener('pagehide',()=>{clearTimeout(retryTimer);welcome?.close();});
   const hash=location.hash.slice(1);showScreen(TempoData.screens[hash]?hash:'overview');
-  window.TempoApp={refresh(){TempoViews.render(state,activity);TempoMotion.update();TempoTips.refresh();},toast,state};
+  window.TempoApp={showScreen,openWelcome,closeWelcome(){welcome?.close();welcome=null;},refresh(){TempoViews.render(state,activity);TempoMotion.update();TempoTips.refresh();},toast,state};
   let seen=false;try{seen=sessionStorage.getItem('tempo-welcome-seen')==='true';}catch{}
-  if(!seen&&!window.TempoPrivatePreview)openWelcome();
+  // First-visit welcome is coordinated by onboarding.js; replay remains available.
 })();
