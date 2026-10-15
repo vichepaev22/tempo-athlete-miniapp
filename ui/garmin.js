@@ -7,11 +7,11 @@
   const section=document.createElement('section');section.className='garmin-connection';section.setAttribute('aria-label','Синхронизация Garmin');
   const heading=document.createElement('h2');heading.textContent='Ваш Garmin.';
   const status=document.createElement('p');status.setAttribute('role','status');
-  const note=document.createElement('p');note.className='footnote';note.textContent='Личное неофициальное подключение. Обновление каждые 15 минут. Время — UTC+5. ИИ-анализ пока не подключён.';
+  const note=document.createElement('p');note.className='footnote';note.textContent='Личное неофициальное подключение. После входа — обновление каждые 15 минут. Время — UTC+5. ИИ-анализ пока не подключён.';
   const sync=document.createElement('button');sync.className='button primary';sync.textContent='Обновить Garmin';sync.disabled=!initData;
   section.append(heading,status,sync,note);document.getElementById('sources-screen').prepend(section);
   let pollTimer,stopped=false;
-  const labels={auth_required:'Нужен первый вход в Garmin через приватную форму на компьютере.',ready:'Garmin синхронизирован.',partial:'История получена частично: достигнут предел загрузки.',rate_limited:'Garmin ограничил частоту запросов. Обновите позже.',provider_unavailable:'Garmin сейчас недоступен. Ранее полученная история сохранена.',invalid_response:'Не удалось проверить ответ Garmin. Ранее полученная история сохранена.',mcp_unavailable:'Сервер синхронизации временно недоступен.',loading:'Загружаем ваш Garmin…'};
+  const labels={auth_required:'Требуется подключение Garmin через приватную форму на компьютере.',ready:'Garmin синхронизирован.',partial:'История получена частично: достигнут предел загрузки.',rate_limited:'Garmin отклонил запрос (429). Автосинхронизация остановлена; ручная попытка доступна после паузы.',access_denied:'Garmin отклонил доступ. Автосинхронизация остановлена; проверьте подключение.',provider_unavailable:'Garmin сейчас недоступен. Ранее полученная история сохранена.',invalid_response:'Не удалось проверить ответ Garmin. Ранее полученная история сохранена.',mcp_unavailable:'Сервер синхронизации временно недоступен.',loading:'Загружаем ваш Garmin…'};
   function apply(rows,connection){
     const shifted=new Date(Date.now()+5*3600000),today=Date.UTC(shifted.getUTCFullYear(),shifted.getUTCMonth(),shifted.getUTCDate());
     const monday=today-((new Date(today).getUTCDay()+6)%7)*86400000;
@@ -38,6 +38,7 @@
     try{const response=await fetch(api+path,{method,headers:{'X-Telegram-Init-Data':initData},credentials:'omit',cache:'no-store',signal:controller.signal});if(!response.ok)throw Object.assign(new Error('request_failed'),{status:response.status});return await response.json();}finally{clearTimeout(timeout);}
   }
   function describe(connection){
+    note.textContent=connection.retry_paused?'Автосинхронизация приостановлена после отказа Garmin. Ранее загруженная история сохранена. ИИ-анализ пока не подключён.':'Личное неофициальное подключение. После входа — обновление каждые 15 минут. Время — UTC+5. ИИ-анализ пока не подключён.';
     const when=connection.last_sync?new Intl.DateTimeFormat('ru-RU',{dateStyle:'short',timeStyle:'short',timeZone:'Asia/Yekaterinburg'}).format(connection.last_sync*1000):'';
     status.textContent=(connection.syncing?'Получаем тренировки…':labels[connection.status]||'Проверка подключения')+(when?' Последнее успешное обновление: '+when+' (UTC+5).':'')+(connection.skipped?' Пропущено неподдерживаемых занятий: '+connection.skipped+'.':'');
   }
