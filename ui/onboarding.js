@@ -110,10 +110,33 @@
     positionFrame=null;if(!guide)return;
     const step=tourSteps[progress.tour_index],target=document.querySelector(step.target),card=guide.querySelector('.tour-card'),focus=guide.querySelector('.tour-focus');
     const width=document.documentElement.clientWidth,height=window.visualViewport?.height||innerHeight;
-    if(target){const r=target.getBoundingClientRect();focus.hidden=false;Object.assign(focus.style,{left:Math.max(6,r.left-7)+'px',top:Math.max(6,r.top-7)+'px',width:Math.min(width-12,r.width+14)+'px',height:Math.min(height-12,r.height+14)+'px'});
-      if(width>680){const left=Math.min(width-440,Math.max(16,r.left));const top=r.bottom+26+card.offsetHeight<height?r.bottom+26:Math.max(16,r.top-card.offsetHeight-26);card.style.left=left+'px';card.style.top=top+'px';}
-    }else{focus.hidden=true;card.style.left=Math.max(16,(width-420)/2)+'px';card.style.top=Math.max(16,(height-card.offsetHeight)/2)+'px';}
-    if(width<=680){card.style.left='12px';card.style.top='auto';}
+    const margin=width<=680?12:16,gap=26,clamp=(n,max)=>Math.max(margin,Math.min(max,n));
+    // Measure the natural card again after a step or viewport change.
+    card.style.maxHeight='';card.style.bottom='auto';
+    const cardWidth=card.offsetWidth,cardHeight=card.offsetHeight;
+    if(!target){focus.hidden=true;card.style.left=clamp((width-cardWidth)/2,width-cardWidth-margin)+'px';card.style.top=clamp((height-cardHeight)/2,height-cardHeight-margin)+'px';return;}
+    let r=target.getBoundingClientRect();
+    if(r.top<0||r.bottom>height){target.scrollIntoView({block:width<=680?'start':'center',inline:'nearest',behavior:'instant'});r=target.getBoundingClientRect();}
+    const left=Math.max(6,r.left-7),top=Math.max(6,r.top-7);
+    focus.hidden=false;Object.assign(focus.style,{left:left+'px',top:top+'px',width:Math.max(0,Math.min(width-6,r.right+7)-left)+'px',height:Math.max(0,Math.min(height-6,r.bottom+7)-top)+'px'});
+    const x=clamp(r.left,width-cardWidth-margin),y=clamp(r.top+(r.height-cardHeight)/2,height-cardHeight-margin);
+    const candidates=[
+      {left:x,top:r.bottom+gap},
+      {left:x,top:r.top-cardHeight-gap},
+      {left:r.right+gap,top:y},
+      {left:r.left-cardWidth-gap,top:y}
+    ];
+    if(width<=680)candidates.unshift({left:margin,top:height-cardHeight-margin});
+    let spot=candidates.find(p=>p.left>=margin&&p.top>=margin&&p.left+cardWidth<=width-margin&&p.top+cardHeight<=height-margin&&
+      (p.left>=r.right+gap||p.left+cardWidth<=r.left-gap||p.top>=r.bottom+gap||p.top+cardHeight<=r.top-gap));
+    if(!spot){
+      // Short landscape windows keep the target visible and scroll the card.
+      const below=height-margin-r.bottom-gap,above=r.top-gap-margin,under=below>=above;
+      const available=Math.max(1,under?below:above);
+      card.style.maxHeight=available+'px';
+      spot={left:x,top:under?r.bottom+gap:r.top-gap-card.offsetHeight};
+    }
+    card.style.left=spot.left+'px';card.style.top=spot.top+'px';
   }
   function reposition(){if(!positionFrame)positionFrame=requestAnimationFrame(position);}
   function paintTour(){
