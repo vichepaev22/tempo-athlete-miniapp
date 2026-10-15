@@ -163,7 +163,7 @@
     ready=true;renderSetup();
     if(progress.tour==='new'){
       let welcomeSeen=false;try{welcomeSeen=sessionStorage.getItem('tempo-welcome-seen')==='true';}catch{}
-      if(privateMode||welcomeSeen||progress.tour_index>0)startTour();else app.openWelcome();
+      if(privateMode||welcomeSeen||progress.tour_index>0||!window.TempoWelcome)startTour();else{try{app.openWelcome();}catch{startTour();}}
     }
   }
   renderSetup();boot();
