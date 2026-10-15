@@ -19,7 +19,7 @@ var TempoReport=(()=>{
       const group=dated.filter(r=>(r.local_start_time||r.start_time).startsWith(month));return {month,count:group.length,minutes:group.reduce((s,r)=>s+r.min,0),km:group.reduce((s,r)=>s+(r.km||0),0)};
     });
     const paceRows=rows.filter(r=>r.km>0&&r.min>0),pace=sport==='run'&&paceRows.length?paceRows.reduce((s,r)=>s+r.min,0)/paceRows.reduce((s,r)=>s+r.km,0):null;
-    const zoneRows=rows.filter(r=>Object.keys(r.archive_metrics?.heart_rate_zone_seconds||{}).length),zones={};
+    const zoneRows=rows.filter(r=>Object.values(r.archive_metrics?.heart_rate_zone_seconds||{}).some(value=>Number.isFinite(value)&&value>0)),zones={};
     for(const r of zoneRows)for(const [zone,seconds] of Object.entries(r.archive_metrics.heart_rate_zone_seconds))zones[zone]=(zones[zone]||0)+seconds;
     const result={count,minutes,bySport,days:days.length,gapDays,months,hrCount:hr.length,hrMedian:median(hr),zeroDistance,missingDistance,pace,zoneCount:zoneRows.length,zones,sections:[]};
     if(!count)return result;

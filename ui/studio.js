@@ -130,8 +130,8 @@
   });});
   window.addEventListener('pagehide',()=>{previewURLs.forEach(url=>URL.revokeObjectURL(url));if(finalURL)URL.revokeObjectURL(finalURL);});
   if(preview){
-    $('connection').textContent='Предпросмотр';$('login-panel').hidden=true;
-    const banner=node('section','','login-panel');banner.append(node('p','Публичный предпросмотр. Книжный поиск доступен в личном кабинете. Диагностика осанки ожидает подключения ИИ. Схемы доступны, оригинальные сторис собираются на вашем устройстве.'));$('login-panel').after(banner);
+    $('connection').textContent=window.TempoPrivatePreview?'Личная студия':'Предпросмотр';$('login-panel').hidden=true;
+    const banner=node('section','','login-panel');banner.append(node('p',(window.TempoPrivatePreview?'Личная студия. Поиск по двум книгам подключён.':'Публичный предпросмотр. Книжный поиск доступен в личном кабинете.')+' Диагностика осанки ожидает подключения ИИ. Схемы доступны, оригинальные сторис собираются на вашем устройстве.'));$('login-panel').after(banner);
     for(const id of ['login-form','posture-form']){$(id).querySelectorAll('input,textarea,select,button[type=submit]').forEach(control=>control.disabled=true);}
     $('rag-form').querySelector('.fine').textContent='Поиск по обеим книгам работает в личном кабинете. Введите вопрос и нажмите кнопку; источник и PDF-страницы появятся рядом.';
     document.querySelectorAll('.ai-note').forEach(p=>p.textContent='Диагностика осанки ожидает подключения ИИ. Фотографии здесь не собираются.');

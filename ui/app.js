@@ -44,6 +44,7 @@
     const input=row.querySelector('input');input.checked=TempoMotion.reduced();input.disabled=matchMedia('(prefers-reduced-motion:reduce)').matches;
     input.addEventListener('change',()=>{TempoMotion.setReduced(input.checked);toast(input.checked?'Движение уменьшено.':'Анимация включена.');});box.append(row);
     const button=document.createElement('button');button.className='button primary';button.textContent='Повторить приветствие';button.addEventListener('click',()=>{el('detail-dialog').close();openWelcome();});box.append(button);
+    const studio=document.createElement('a');studio.href='studio.html#posture';studio.className='button secondary';studio.textContent='Студия: осанка и сторис ↗';box.append(studio);
     const hint=document.createElement('p');hint.className='footnote';hint.textContent=input.disabled?'Уменьшение движения включено в настройках устройства.':'Настройка сохраняется в этом браузере.';box.append(hint);dialog('Ваш кабинет',box,'Профиль / движение');
   }
   function openWelcome(){
