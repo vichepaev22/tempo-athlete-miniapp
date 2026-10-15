@@ -17,6 +17,7 @@ window.TempoMotion = (() => {
     tile?.classList.remove('playing','signal');if(tile)tile.dataset.motion='static';
   }
   function sport(name,play=true){
+    if(!['run','swim','all'].includes(name))name='all';
     stop();const tile=document.getElementById('athlete-tile');
     document.getElementById('athlete-art').innerHTML=TempoIcons.athlete(name);
     tile.setAttribute('aria-label','Повторить анимацию: '+({run:'бег',swim:'плавание',all:'все дисциплины'}[name]));
