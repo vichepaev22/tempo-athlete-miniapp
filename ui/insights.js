@@ -164,15 +164,16 @@ var TempoInsights=(()=>{
     const dismiss=node('button','insight-dismiss','Закрыть ×');dismiss.type='button';dismiss.addEventListener('click',()=>close());header.append(label,dismiss);dialog.append(header);
     const block=(title,text,cls='')=>{const section=node('section','insight-detail '+cls);section.append(node('h3','',title),node('p','',text));dialog.append(section);};
     block('01 / Что видно в выгрузке',item.fact,'insight-fact');block('02 / Почему это имеет значение',item.why);
-    const evidence=node('section','insight-detail insight-evidence');evidence.append(node('h3','','03 / На какие источники опираемся'));
+    const evidence=node('section','insight-detail insight-evidence');evidence.append(node('h3','','03 / Книжное основание и дополнения'));
     item.sourceIds.forEach(id=>{
-      const source=sources[id],section=node('article','insight-source');section.append(node('h4','',source.title));
+      const source=sources[id],section=node('article','insight-source');
+      section.append(node('p','insight-source-kind',source.kind==='book'?'ОСНОВНАЯ КНИГА · ИЗ ОЦИФРОВАННОЙ БАЗЫ':source.url.includes('pubmed.ncbi.nlm.nih.gov')?'ВНЕШНЯЯ НАУЧНАЯ ПУБЛИКАЦИЯ · НЕ ОЦИФРОВАНА':'ВНЕШНЯЯ СПРАВОЧНАЯ СТРАНИЦА · ВНЕ КНИЖНОЙ БАЗЫ'),node('h4','',source.title));
       if(source.kind==='book')section.append(node('p','insight-source-location','PDF-с. '+source.page+' · глава '+source.chapter+' · '+source.book+':'+source.chunk));
       section.append(node('p','',source.summary));
       if(source.url){const a=node('a','text-button','Открыть первоисточник ↗');a.href=source.url;a.target='_blank';a.rel='noopener noreferrer';section.append(a);}
       evidence.append(section);
     });
-    evidence.append(node('p','insight-caption','Книжные тезисы — проверенные пересказы OCR, не дословные цитаты. Номер PDF-страницы взят из пакета; оригинальный PDF в нём отсутствует. Применение принципа к журналу — правило сервиса, а не заключение автора книги о вас.'));dialog.append(evidence);
+    evidence.append(node('p','insight-caption','В оцифрованной базе ровно две основные книги. Книжные тезисы — пересказы OCR, не дословные цитаты; исходные PDF находятся в разделе «Книги и источники» личного кабинета. Внешние публикации добавлены отдельно для проверки общих положений и в книжную базу не входят. Применение принципа к журналу — правило сервиса, а не заключение автора книги о вас.'));dialog.append(evidence);
     block('04 / Что ещё неизвестно',item.limit);block('05 / Следующий шаг',item.next,'insight-next');
     const done=node('button','button primary','Понятно, вернуться к отчёту');done.type='button';done.addEventListener('click',()=>close());dialog.append(done);
     dialog.showModal();dialog.scrollTop=0;title.focus({preventScroll:true});
