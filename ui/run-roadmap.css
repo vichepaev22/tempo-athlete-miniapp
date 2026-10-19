@@ -37,9 +37,9 @@
 .roadmap-detail .text-button{font-size:11px;min-height:44px;margin-top:16px;text-align:left;color:#334e2b}
 .roadmap-rule{font-size:11px;line-height:1.8;border-left:3px solid #7e936b;padding:4px 0 4px 14px;margin:23px 0;color:#4f6045}
 .roadmap-table-scroll{width:100%;max-width:100%;min-width:0;overflow:auto;margin:0 0 18px;border:1px solid #c8d2be;border-radius:10px;background:white;overscroll-behavior-x:contain}
-.roadmap-table{min-width:730px;width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px;text-align:center}
+.roadmap-table{min-width:600px;width:100%;border-collapse:collapse;table-layout:fixed;font-size:9px;text-align:center}
 .roadmap-table th,.roadmap-table td{border:1px solid #e0e6d9;padding:10px 5px;line-height:1.5}
-.roadmap-table th:first-child{width:100px;text-align:left;padding-left:12px;background:#f0f3eb}
+.roadmap-table th:first-child{width:100px;text-align:left;padding-left:12px;background:#f0f3eb;position:sticky;left:0;z-index:1}
 .roadmap-week{font:inherit;font-weight:700;font-size:12px;min-width:44px;min-height:44px;background:#f0f3eb;border:1px solid transparent;border-radius:50%;cursor:pointer;color:#475642}
 .roadmap-week[aria-pressed=true]{background:#304929;color:white}
 .roadmap-cell-accent{background:#e1ead1;color:#294522;font-weight:750}
