@@ -5,6 +5,12 @@ var TempoInsights=(()=>{
   const book1='Уилмор и Костилл · Физиология спорта и двигательной активности';
   const book2='Владимир Иссурин · Подготовка спортсменов XXI века: научные основы и построение тренировки';
   const sources={
+    thresholdBook:{kind:'book',book:'book-01',chunk:206,page:90,chapter:5,title:book1,summary:'В книге порог лактата рассматривается относительно МПК. При одинаковом МПК возможность дольше поддерживать работу зависит и от порога. Пороговый пульс, темп и доля МПК — разные величины; без измеренного потребления кислорода одна не превращается в другую.'},
+    economyBook:{kind:'book',book:'book-01',chunk:215,page:93,chapter:5,title:book1,summary:'Экономичность связана с затратами энергии при одинаковой скорости и условиями движения. Сравнения требуют сопоставимой скорости; результаты другой дисциплины и особенности отдельных групп не переносятся автоматически на бегуна.'},
+    mixedBook:{kind:'book',book:'book-02',chunk:459,page:160,chapter:6,title:book2,summary:'Иссурин различает задачи высококвалифицированных спортсменов и начинающих: смешанные программы могут давать достаточный стимул спортсменам низкого и среднего уровня. Концентрированные элитные блоки не обязательны для каждого.'},
+    blocksBook:{kind:'book',book:'book-02',chunk:467,page:162,chapter:6,title:book2,summary:'В описанной системе акценты объединяются в этапы, заканчивающиеся реализацией и восстановлением. Приведённые 4+4+2 недели относятся к рассматриваемой модели; это не универсальная длительность для любителя и не источник нашего учебного шаблона на 8 недель.'},
+    economyStudy:{kind:'article',title:'Paavolainen и соавт., 1999 · силовая работа и экономичность',url:'https://pubmed.ncbi.nlm.nih.gov/10233114/',summary:'У 18 подготовленных спортсменов сравнивали 9 недель обычной выносливостной работы и замены её части взрывной силовой. В экспериментальной группе улучшились экономичность и результат на 5 км без изменения МПК. Это не универсальная дозировка и не обещание такого же эффекта.'},
+    raceStudy:{kind:'article',title:'Vickers и Vertosick, 2016 · прогноз времени по прошлому старту',url:'https://pubmed.ncbi.nlm.nih.gov/27570626/',summary:'В исследовании 2303 любителей формула Riegel с показателем 1,07 была в среднем калибрована для дистанций до полумарафона. Популяционная калибровка не определяет индивидуальную ошибку; тренировочная пробежка не равна соревновательному результату.'},
     adaptation:{kind:'book',book:'book-01',chunk:426,page:180,chapter:10,title:book1,summary:'Повторяющаяся работа на выносливость создаёт стимул для адаптации доставки и использования кислорода. Книга описывает механизм, а не оценивает форму по числу занятий.'},
     specificity:{kind:'book',book:'book-01',chunk:473,page:198,chapter:10,title:book1,summary:'Адаптация и её оценка связаны со спецификой двигательной деятельности. Достижения в одном виде нельзя автоматически приписать другому.'},
     oxygen:{kind:'book',book:'book-01',chunk:429,page:181,chapter:10,title:book1,summary:'МПК характеризует максимальную скорость использования кислорода при предельной нагрузке и рассматривается как показатель кардиореспираторной выносливости. Его не вычисляют из количества занятий.'},
@@ -26,6 +32,12 @@ var TempoInsights=(()=>{
     return Number.isFinite(ms)&&new Date(ms).toISOString().slice(0,10)===date?ms:null;
   }
   const iso=ms=>new Date(ms).toISOString().slice(0,10);
+  function readVO2(rows){
+    const values=clean(rows).filter(r=>r.sport==='run').map(r=>({value:r.archive_metrics?.running_vo2_max_ml_kg_min,date:stamp(r),when:Date.parse(r.local_start_time||r.start_time)}))
+      .filter(r=>typeof r.value==='number'&&Number.isFinite(r.value)&&r.value>=10&&r.value<=100&&r.date!==null&&Number.isFinite(r.when))
+      .sort((a,b)=>b.when-a.when);
+    return values.length?{value:values[0].value,date:iso(values[0].date),count:values.length}:null;
+  }
   const day=ms=>new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(ms);
   const range=(a,b)=>day(a)+' — '+day(b);
   const clean=rows=>(Array.isArray(rows)?rows:[]).filter(r=>r&&Object.hasOwn(names,r.sport));
@@ -55,7 +67,7 @@ var TempoInsights=(()=>{
     const rows=clean(input),all=clean(contextRows),cal=calendar(rows),recovery=calendar(all);
     const stats={count:rows.length,minutes:rows.reduce((s,r)=>s+(finite(r.min)?r.min:0),0),knownMinutes:rows.filter(r=>finite(r.min)).length,
       hrCount:rows.filter(r=>finite(r.heart_rate)&&r.heart_rate>0).length,zoneCount:rows.filter(r=>Object.values(r.archive_metrics?.heart_rate_zone_seconds||{}).some(v=>finite(v)&&v>0)).length,
-      datedCount:cal.datedCount,activeDays:cal.activeDays,activeWeeks:cal.activeWeeks,longestGap:cal.longestGap,vo2:null};
+      datedCount:cal.datedCount,activeDays:cal.activeDays,activeWeeks:cal.activeWeeks,longestGap:cal.longestGap,vo2:readVO2(rows)?.value??null};
     if(!rows.length)return {stats,recovery,quadrants:[],recommendations:[]};
     const item=(id,title,fact,why,limit,next,sourceIds,kind='Наблюдение журнала')=>({id,title,fact,why,limit,next,sourceIds,kind});
     const discipline=names[sport]||'выбранные виды',kinds=[...new Set(rows.map(r=>r.sport))];
@@ -112,11 +124,11 @@ var TempoInsights=(()=>{
         'Интенсивность и индивидуальная реакция ещё не подтверждены; журнал не позволяет утверждать «сильная аэробная база».',
         sport==='swim'?'Повторяйте знакомые комфортные отрезки с привычным отдыхом, отмечая стиль и ощущения. Не увеличивайте дистанцию ради заполнения графика.':'Сохраняйте знакомую посильную работу. Для лёгкого варианта ориентируйтесь на комфортное усилие и возможность говорить фразами; длительность выбирайте в пределах уже привычной.',
         ['adaptation','load',...(sport==='swim'?[]:['talk'])],'Образовательный следующий шаг'),
-      item('vo2','VO₂ max: сначала понять измерение','VO₂ max не передан в нормализованной выгрузке. Значение не вычисляется из темпа, среднего пульса или Garmin Training Effect.',
+      item('vo2','VO₂ max: понять измерение',stats.vo2!==null?'Последняя беговая оценка Garmin в выбранном периоде: '+num(stats.vo2)+' мл/кг/мин, '+readVO2(rows).date+'. Это оценка устройства, не лабораторное измерение.':'VO₂ max не передан в нормализованной выгрузке. Значение не вычисляется из темпа, среднего пульса или Garmin Training Effect.',
         'МПК описывает максимальную скорость использования кислорода — один из показателей кардиореспираторной выносливости. Оценка часов и прямое лабораторное измерение — разные способы оценки; значение одного вида нагрузки не переносится автоматически на другой.',
         sport==='swim'?'Беговая оценка Garmin не является оценкой техники или VO₂ max в плавании. Протокол уличной пробежки к заплывам не применяется.':'Условия оценки зависят от модели и дисциплины. Пример инструкции ниже относится к Forerunner 245 и бегу; он не назначает максимальное усилие и не гарантирует доступность функции на ваших часах.',
-        sport==='swim'?'Сначала сопоставляйте похожие заплывы. Если нужно прямое измерение МПК, условия теста подбирают под задачу со специалистом.':sport==='run'||sport==='all'?'Проверьте поддержку функции на своей модели. В примере FR245 нужны настроенный профиль/максимальный пульс, датчик пульса, уличный бег не менее 10 минут и сохранение занятия. Не повышайте усилие ради получения цифры.':'Проверьте руководство именно своей модели и вида активности. Беговой пример не задаёт условия оценки для велосипеда или ходьбы.',
-        ['oxygen','specificity',...(sport==='swim'?[]:['garmin'])],'Измерение пока отсутствует')
+        stats.vo2!==null?'Откройте карту развития бега ниже. Сравнивайте датированные оценки в похожих условиях; не увеличивайте усилие ради нового балла. Оценка часов сама по себе не задаёт тренировочный темп.':sport==='swim'?'Сначала сопоставляйте похожие заплывы. Если нужно прямое измерение МПК, условия теста подбирают под задачу со специалистом.':sport==='run'||sport==='all'?'Проверьте поддержку функции на своей модели. В примере FR245 нужны настроенный профиль/максимальный пульс, датчик пульса, уличный бег не менее 10 минут и сохранение занятия. Не повышайте усилие ради получения цифры.':'Проверьте руководство именно своей модели и вида активности. Беговой пример не задаёт условия оценки для велосипеда или ходьбы.',
+        ['oxygen','specificity',...(sport==='swim'?[]:['garmin'])],stats.vo2!==null?'Оценка Garmin из отчёта':'Измерение пока отсутствует')
     ];
     if(sport==='run'||sport==='all'||sport==='cycle')recommendations.push(item('intervals','VO₂ max: интенсивность как отдельный стимул','Выгрузка не сообщает опыт, самочувствие и задачу каждого занятия. Отсутствие интервалов не установлено.',
       'Книга и исследование рассматривают аэробные интервалы как вариант стимула для МПК. Это отличается от простого увеличения дистанции.',
@@ -167,7 +179,7 @@ var TempoInsights=(()=>{
     const evidence=node('section','insight-detail insight-evidence');evidence.append(node('h3','','03 / Книжное основание и дополнения'));
     item.sourceIds.forEach(id=>{
       const source=sources[id],section=node('article','insight-source');
-      section.append(node('p','insight-source-kind',source.kind==='book'?'ОСНОВНАЯ КНИГА · ИЗ ОЦИФРОВАННОЙ БАЗЫ':source.url.includes('pubmed.ncbi.nlm.nih.gov')?'ВНЕШНЯЯ НАУЧНАЯ ПУБЛИКАЦИЯ · НЕ ОЦИФРОВАНА':'ВНЕШНЯЯ СПРАВОЧНАЯ СТРАНИЦА · ВНЕ КНИЖНОЙ БАЗЫ'),node('h4','',source.title));
+      section.append(node('p','insight-source-kind',source.kind==='book'?'ОСНОВНАЯ КНИГА · ИЗ ОЦИФРОВАННОЙ БАЗЫ':/pubmed.ncbi.nlm.nih.gov|journals.physiology.org/.test(source.url)?'ВНЕШНЯЯ НАУЧНАЯ ПУБЛИКАЦИЯ · НЕ ОЦИФРОВАНА':'ВНЕШНЯЯ СПРАВОЧНАЯ СТРАНИЦА · ВНЕ КНИЖНОЙ БАЗЫ'),node('h4','',source.title));
       if(source.kind==='book')section.append(node('p','insight-source-location','PDF-с. '+source.page+' · глава '+source.chapter+' · '+source.book+':'+source.chunk));
       section.append(node('p','',source.summary));
       if(source.url){const a=node('a','text-button','Открыть первоисточник ↗');a.href=source.url;a.target='_blank';a.rel='noopener noreferrer';section.append(a);}
@@ -204,6 +216,6 @@ var TempoInsights=(()=>{
       const button=node('button','text-button','Объяснение и источники ↗');button.type='button';button.dataset.insight=item.id;button.setAttribute('aria-haspopup','dialog');button.addEventListener('click',()=>open(item,button,!!TempoData.live));article.append(button);cards.append(article);
     });advice.append(cards);wrap.append(advice);target.append(wrap);
   }
-  return {build,sources,render};
+  return {build,sources,render,readVO2,explain:(item,trigger)=>open(item,trigger,!!window.TempoData?.live)};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=TempoInsights;
