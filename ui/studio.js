@@ -75,6 +75,28 @@
     $('posture-result').append(node('p','Можно выбрать новые снимки по инструкции.','muted'));
   }
   $('clear-photos').addEventListener('click',()=>{clearPhotos();notify('Фото и отчёт удалены из текущей вкладки.');});
+  const jevButton=node('button','Проверить только кадры через Jev','quiet');jevButton.type='button';
+  const jevConsent=document.createElement('input');jevConsent.type='checkbox';
+  const jevLabel=node('label','','check');jevLabel.append(jevConsent,node('span','Разрешаю передать выбранные фото TypeSafe для совета о кадре. Это отдельная экспериментальная проверка; условия хранения определяет TypeSafe. Генерация OpenAI не запускается.'));
+  $('posture-form').append(jevLabel,jevButton);
+  jevButton.addEventListener('click',async()=>{
+    jevButton.disabled=true;
+    try{
+      if(!jevConsent.checked||!$('adult').checked||!$('own').checked)throw new Error('Подтвердите совершеннолетие, собственное спортивное фото и передачу TypeSafe.');
+      const version=postureVersion,photos=[];
+      for(const [view] of views){const f=validFile($('photo-'+view));if(f)photos.push({view,image:await base64(f),mirrored:$('mirror-'+view).checked});}
+      if(!photos.length)throw new Error('Добавьте хотя бы один снимок.');
+      const body={photos,consent:{adult:true,own_photo:true,sportswear:true,provider_consent:true},jev_consent:true,request_id:crypto.randomUUID()};
+      let result;const initData=window.Telegram?.WebApp?.initData;
+      if(initData&&window.TempoGarminConfig?.api){
+        const response=await fetch(window.TempoGarminConfig.api+'/api/jev/photo-check',{method:'POST',headers:{'Content-Type':'application/json','X-Telegram-Init-Data':initData},body:JSON.stringify(body),cache:'no-store'});
+        if(!response.ok)throw new Error('Проверка кадра недоступна.');result=await response.json();
+      }else{requireSession();result=await request('/api/jev/photo-check',body);}
+      if(version!==postureVersion)return;
+      clearResult($('posture-result'),'Проверка кадра');$('posture-result').append(node('p',result.scope));
+      result.checks.forEach(check=>$('posture-result').append(node('p',check.view+': '+(check.review?'Проверьте полный рост, свет и ракурс по памятке.':'По предварительной оценке кадр подходит.'))));
+    }catch(error){notify(error.message,true);}finally{jevButton.disabled=false;jevConsent.checked=false;}
+  });
   $('posture-form').addEventListener('submit',e=>{e.preventDefault();action(e.currentTarget,async()=>{
     requireAI();const version=postureVersion, photos=[];
     for(const [view] of views){const f=validFile($('photo-'+view));if(f)photos.push({view,image:await base64(f),mirrored:$('mirror-'+view).checked});}
@@ -133,10 +155,18 @@
     $('connection').textContent=window.TempoPrivatePreview?'Личная студия':'Предпросмотр';$('login-panel').hidden=true;
     const banner=node('section','','login-panel');banner.append(node('p',(window.TempoPrivatePreview?'Личная студия. Поиск по двум книгам подключён.':'Публичный предпросмотр. Книжный поиск доступен в личном кабинете.')+' Диагностика осанки ожидает подключения ИИ. Схемы доступны, оригинальные сторис собираются на вашем устройстве.'));$('login-panel').after(banner);
     for(const id of ['login-form','posture-form']){$(id).querySelectorAll('input,textarea,select,button[type=submit]').forEach(control=>control.disabled=true);}
+    const telegramJev=!!window.Telegram?.WebApp?.initData&&!!window.TempoGarminConfig?.api;
+    jevButton.disabled=!telegramJev;
+    if(telegramJev){
+      $('posture-form').querySelectorAll('input[type=file],input[id^="mirror-"],#adult,#own').forEach(control=>control.disabled=false);
+      jevConsent.disabled=false;
+      document.querySelectorAll('.ai-note').forEach(p=>p.textContent='В Telegram доступна отдельная проверка кадра через Jev. Оценка осанки OpenAI пока выключена.');
+    }
     $('rag-form').querySelector('.fine').textContent='Поиск по обеим книгам работает в личном кабинете. Введите вопрос и нажмите кнопку; источник и PDF-страницы появятся рядом.';
-    document.querySelectorAll('.ai-note').forEach(p=>p.textContent='Диагностика осанки ожидает подключения ИИ. Фотографии здесь не собираются.');
+    if(!telegramJev)document.querySelectorAll('.ai-note').forEach(p=>p.textContent='Диагностика осанки ожидает подключения ИИ. Фотографии здесь не собираются.');
     Array.from($('style').options).forEach(option=>option.disabled=option.value!=='original');$('random-scene').disabled=true;$('random-scene').title='После подключения ИИ';
     $('recipe-label').textContent='Оригинальное фото. Художественные стили появятся после подключения ИИ.';
     document.querySelector('footer p').textContent='Предпросмотр. Ручной импорт Garmin доступен в личном Telegram-пилоте. Аккаунты ещё не синхронизируются.';
   }else (async()=>{try{await request('/api/health',undefined,'GET');try{const s=await request('/api/session',undefined,'GET');setSession(true,s.external_ai);}catch(_){setSession(false,false);}}catch(_){$('connection').textContent='Сервис недоступен';setSession(false,false);$('connection').textContent='Сервис недоступен';}})();
 })();
+
